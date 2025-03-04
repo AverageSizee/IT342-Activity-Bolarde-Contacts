@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Google Contacts</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button class="create-contact" id="createContactButton">
+            <span class="material-icons">add</span> Create Contact
+        </button>        
+    </div>
+
+
+    <!-- Header/Navigation Bar -->
+    <div class="header">
+        <div class="logo-container">
+            <span class="material-icons menu-icon" id="menuButton">menu</span>
+            <span class="material-icons contacts-icon">person</span>
+            <span class="logo-text">Contacts</span>
+        </div>
+        <div class="search-container">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" class="search-box" placeholder="Search">
+        </div>
+        <div class="header-actions">
+            <div class="profile-pic" th:if="${profilePic == null}">JD</div>
+            <img th:if="${profilePic != null}" th:src="${profilePic}" alt="Profile Picture" class="profile-pic">
+        </div>
+    </div>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper" id="contentContainer">
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="contacts-header">
+                <h1 class="contacts-title">Contacts</h1>
+                <span class="contacts-count" th:text="'(' + ${contacts.size()} + ')'"></span>
+            </div>
+
+            <div class="table-actions">
+                <span class="material-icons table-action-icon">more_vert</span>
+            </div>
+
+            <table class="contacts-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone number</th>
+                        <th>Address</th>
+                        <th>Birthday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="contact, contactStat : ${contacts}" class="contact-row" th:data-index="${contactStat.index}" onclick="selectContact(this)">
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <!-- Profile Picture or Initial -->
+                                <div th:if="${contact['photos'] == null or contact['photos'][0] == null or contact['photos'][0]['url'] == null}">
+                                    <div class="contact-initial" th:text="${contact['names'] != null and contact['names'][0] != null and contact['names'][0]['displayName'] != null 
+                                        ? contact['names'][0]['displayName'].substring(0,1).toUpperCase() : 'U'}"></div>
+                                </div>
+                                <img th:if="${contact['photos'] != null and contact['photos'][0] != null and contact['photos'][0]['url'] != null}"
+                                     th:src="${contact['photos'][0]['url']}" 
+                                     alt="Profile Picture" class="profile-img">
+                                
+                                <!-- Contact Name -->
+                                <span style="margin-left: 16px;" th:text="${contact['names'] != null and contact['names'][0] != null and contact['names'][0]['displayName'] != null 
+                                    ? contact['names'][0]['displayName'] : 'Unknown'}"></span>
+                            </div>
+                        </td>
+
+                        <td th:text="${contact['emailAddresses'] != null and contact['emailAddresses'][0] != null and contact['emailAddresses'][0]['value'] != null 
+                                    ? contact['emailAddresses'][0]['value'] : ''}"></td>
+                        <td th:text="${contact['phoneNumbers'] != null and contact['phoneNumbers'][0] != null and contact['phoneNumbers'][0]['value'] != null 
+                                    ? contact['phoneNumbers'][0]['value'] : ''}"></td>
+                        <td th:text="${contact['addresses'] != null and contact['addresses'][0] != null and contact['addresses'][0]['formattedValue'] != null 
+                                    ? contact['addresses'][0]['formattedValue'] : ''}"></td>
+                        <td th:text="${contact['birthdays'] != null and contact['birthdays'][0] != null and contact['birthdays'][0]['date'] != null 
+                                    ? contact['birthdays'][0]['date']['year'] + '-' + 
+                                      (contact['birthdays'][0]['date']['month'] < 10 ? '0' : '') + contact['birthdays'][0]['date']['month'] + '-' + 
+                                      (contact['birthdays'][0]['date']['day'] < 10 ? '0' : '') + contact['birthdays'][0]['date']['day']
+                                    : ''}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    <!-- Contact Details Panel -->
+    <div class="contact-details-panel" id="contactDetailsPanel" style="display: none;">
+        <div class="contact-details-header">
+            <button class="close-button" onclick="closeContactDetails()">
+                <span class="material-icons">close</span>
+            </button>
+            <div class="contact-details-initial" id="contactDetailInitial">A</div>
+            <img id="contactDetailImg" class="contact-details-img" style="display: none;" alt="Contact Picture">
+            
+            <!-- Name -->
+            <div class="contact-details-value" id="contactDetailName">Aa Queenie</div>
+            <input type="text" id="contactNameInput" class="contact-edit-input" style="display: none;">
+        </div>
+
+        <!-- Hidden Input for Google Contact ID -->
+        <input type="hidden" id="contactDetailId">
+
+        <div class="contact-details-box">
+            <!-- Email -->
+            <div class="contact-details-info">
+                <div class="contact-details-label">Email</div>
+                <div class="contact-details-value" id="contactDetailEmail">-</div>
+                <input type="email" id="contactEmailInput" class="contact-edit-input" style="display: none;">
+            </div>
+            
+            <!-- Phone -->
+            <div class="contact-details-info">
+                <div class="contact-details-label">Phone</div>
+                <div class="contact-details-value" id="contactDetailPhone">+46721890877</div>
+                <input type="text" id="contactPhoneInput" class="contact-edit-input" style="display: none;">
+            </div>
+            
+            <!-- Address -->
+            <div class="contact-details-info">
+                <div class="contact-details-label">Address</div>
+                <div class="contact-details-value" id="contactDetailAddress">-</div>
+                <input type="text" id="contactAddressInput" class="contact-edit-input" style="display: none;">
+            </div>
+            
+            <!-- Birthday -->
+            <div class="contact-details-info">
+                <div class="contact-details-label">Birthday</div>
+                <div class="contact-details-value" id="contactDetailBirthday">-</div>
+                <input type="date" id="contactBirthdayInput" class="contact-edit-input" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="contact-details-actions">
+            <div class="contact-action" id="deleteContactButton">
+                <span class="material-icons contact-action-icon">delete</span>
+                <span class="contact-action-text">Delete</span>
+            </div>
+            <div class="contact-action" id="editContactButton" onclick="toggleEditMode(true)">
+                <span class="material-icons contact-action-icon">edit</span>
+                <span class="contact-action-text">Edit</span>
+            </div>
+            <div class="contact-action" id="saveContactButton" style="display: none;" onclick="toggleEditMode(false)">
+                <span class="material-icons contact-action-icon">save</span>
+                <span class="contact-action-text">Save</span>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        var contacts = /*[[${contacts}]]*/ [];
+    </script>    
+    <script th:src="@{/script.js}"></script>
+</body>
+</html>

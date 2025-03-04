@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Contact</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/stylesCreate.css}">
+</head>
+<body>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <div class="create-contact-container">
+            
+            <!-- Left Section: Back Button & Profile -->
+            <div class="left-section">
+                <button class="back-button">
+                    <span class="material-icons">arrow_back</span>
+                </button>
+
+                <div class="contact-avatar">
+                    <!-- Placeholder for Default Avatar -->
+                    <div id="avatarPlaceholder" class="avatar-placeholder">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="Default Avatar">
+                    </div>
+
+                    <!-- Profile Image (Hidden Initially) -->
+                    <img id="profileImage" class="avatar-image" style="display: none;">
+
+                    <!-- Hidden File Input -->
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+
+                    <!-- Hidden Input to Store Base64 Image -->
+                    <input type="hidden" id="imageBase64">
+
+                    <!-- Add Profile Button -->
+                    <button class="add-avatar" onclick="document.getElementById('imageUpload').click();">
+                        <span class="material-icons">add</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Section: Form & Save Button -->
+            <div class="right-section">
+                <div class="save-container">
+                    <button id="saveButton" class="save-button" disabled>Save</button>
+                </div>
+
+                <div class="contact-form">
+                    <div class="input-group">
+                        <span class="material-icons">person</span>
+                        <input type="text" id="contactName" placeholder="Full Name">
+                    </div>
+                    <div class="input-group">
+                        <span class="material-icons">email</span>
+                        <input type="text" id="contactEmail" placeholder="Email Address">
+                    </div>
+                    <div class="input-group">
+                        <span class="material-icons">phone</span>
+                        <input type="text" id="contactPhone" placeholder="Phone Number">
+                    </div>
+                    <div class="input-group">
+                        <span class="material-icons">cake</span>
+                        <input type="date" id="contactBirthday" placeholder="Birthday">
+                    </div>
+                    <div class="input-group">
+                        <span class="material-icons">home</span>
+                        <input type="text" id="contactAddress" placeholder="Address">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script th:src="@{/script.js}"></script>
+</body>
+</html>
