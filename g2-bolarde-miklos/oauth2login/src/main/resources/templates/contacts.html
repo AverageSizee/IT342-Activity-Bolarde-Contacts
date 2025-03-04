@@ -6,13 +6,21 @@
     <link rel="stylesheet" th:href="@{/styles.css}">
 </head>
 <body>
+    <!-- Modal -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <button id="modalConfirm">OK</button>
+            <button id="modalCancel" style="display: none;">Cancel</button>
+        </div>
+    </div>
     <!-- Sidebar -->
     <div class="sidebar">
         <button class="create-contact" id="createContactButton">
             <span class="material-icons">add</span> Create Contact
         </button>        
     </div>
-
+    
 
     <!-- Header/Navigation Bar -->
     <div class="header">
@@ -26,9 +34,16 @@
             <input type="text" class="search-box" placeholder="Search">
         </div>
         <div class="header-actions">
-            <div class="profile-pic" th:if="${profilePic == null}">JD</div>
-            <img th:if="${profilePic != null}" th:src="${profilePic}" alt="Profile Picture" class="profile-pic">
+            <!-- Profile Picture or Initials -->
+            <div class="profile-pic" th:if="${profilePic == null}" onclick="toggleDropdown()">JD</div>
+            <img th:if="${profilePic != null}" th:src="${profilePic}" alt="Profile Picture" class="profile-pic" onclick="toggleDropdown()">
+        
+            <!-- Dropdown Menu -->
+            <div id="profileDropdown" class="dropdown-menu">
+                <button onclick="logout()">Logout</button>
+            </div>
         </div>
+        
     </div>
 
     <!-- Content Wrapper -->

@@ -8,6 +8,41 @@ document.addEventListener("DOMContentLoaded", function () {
     const deleteButton = document.getElementById("deleteContactButton");
     const editButton = document.getElementById("editContactButton");
     const saveButton = document.getElementById("saveContactButton");
+    const searchBox = document.querySelector(".search-box");
+    const contactRows = document.querySelectorAll(".contact-row");
+
+        // Toggle Sidebar
+    menuButton?.addEventListener("click", function () {
+        sidebar?.classList.toggle("open");
+        contentWrapper?.classList.toggle("shifted");
+    });
+
+        // Load "Create Contact" Form
+    createContactButton?.addEventListener("click", function () {
+        fetch("/contacts/create-contact")
+            .then(response => response.text())
+            .then(html => {
+                contentContainer.innerHTML = html;
+                attachDynamicEventListeners(); // Attach event listeners after loading the form
+            });
+    });
+
+    searchBox.addEventListener("input", function () {
+        let searchTerm = searchBox.value.trim().toLowerCase();
+
+        contactRows.forEach(row => {
+            let name = row.querySelector("td:nth-child(1) span").textContent.toLowerCase();
+            let email = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+            let birthday = row.querySelector("td:nth-child(5)").textContent.toLowerCase();
+
+            // Show row if any column contains the search term
+            if (name.includes(searchTerm) || email.includes(searchTerm) || birthday.includes(searchTerm)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
 
     if (deleteButton) {
         deleteButton.addEventListener("click", function () {
@@ -25,30 +60,14 @@ document.addEventListener("DOMContentLoaded", function () {
             saveContactDetails();
         });
     }
-    
-
-    attachEditFunctionality();
 
     if (contentContainer) {
         originalContent = contentContainer.innerHTML; // Store original content
     }
 
-    // Toggle Sidebar
-    menuButton?.addEventListener("click", function () {
-        sidebar?.classList.toggle("open");
-        contentWrapper?.classList.toggle("shifted");
-    });
-
-    // Load "Create Contact" Form
-    createContactButton?.addEventListener("click", function () {
-        fetch("/contacts/create-contact")
-            .then(response => response.text())
-            .then(html => {
-                contentContainer.innerHTML = html;
-                attachDynamicEventListeners(); // Attach event listeners after loading the form
-            });
-    });
+    attachEditFunctionality();
 });
+
 
 // Function to attach event listeners for dynamically added elements
 function attachDynamicEventListeners() {
@@ -107,7 +126,7 @@ function attachDynamicEventListeners() {
         })
         .then(response => response.json())
         .then(data => {
-            alert("Contact created successfully!");
+            showModal("Contact created successfully!",null,false);
             closeCreateContact();
         })
         .catch(error => console.error("Error creating contact:", error));
@@ -198,42 +217,38 @@ function closeContactDetails() {
 function deleteContact() {
     const selectedRow = document.querySelector(".contact-row.selected");
     if (!selectedRow) {
-        alert("Please select a contact first.");
+        showModal("Please select a contact first.",null,false);
         return;
     }
 
     const index = selectedRow.getAttribute("data-index");
     if (contacts.length <= index) {
-        alert("Invalid contact selection.");
+        showModal("Invalid contact selection.".null,false);
         return;
     }
 
     const contactId = contacts[index].resourceName; // Google API uses resourceName as the ID
     if (!contactId) {
-        alert("Cannot delete contact without an ID.");
+        showModal("Cannot delete contact without an ID.",showModal);
         return;
     }
 
-    if (!confirm("Are you sure you want to delete this contact?")) {
-        return;
-    }
-
-    console.log("Deleting contact with ID:", contactId);
-    fetch(`/contacts/delete?contactId=${encodeURIComponent(contactId)}`, { 
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Contact deleted successfully.");
-            location.reload(); // Reload the page to update the list
+    showModal("Are you sure you want to delete this contact?", function (confirmed) {
+        if (confirmed) {
+            fetch(`/contacts/delete?contactId=${encodeURIComponent(contactId)}`, { 
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
+            }).then(response => {
+                if (response.ok) {
+                    showModal("Contact deleted successfully.", () => location.reload());
+                } else {
+                    showModal("Failed to delete contact.");
+                }
+            }).catch(error => console.error("Error deleting contact:", error));
         } else {
-            alert("Failed to delete contact.");
+            showModal("Deletion canceled.");
         }
-    })
-    .catch(error => console.error("Error deleting contact:", error));
+    }, true);
 }
 
 // Function to enable editing contact details
@@ -372,9 +387,59 @@ function saveContactDetails() {
             console.error("Update failed:", data.error);
         } else {
             console.log("Contact updated successfully:", data);
-            alert("Contact updated successfully!");
+            showModal("Contact updated successfully!",null,false);
             location.reload();
         }
     })
     .catch(error => console.error("Error updating contact:", error));
+}
+// Toggle dropdown visibility
+function toggleDropdown() {
+    const dropdown = document.getElementById("profileDropdown");
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+// Hide dropdown when clicking outside
+document.addEventListener("click", function (event) {
+    const profilePic = document.querySelector(".profile-pic");
+    const dropdown = document.getElementById("profileDropdown");
+
+    if (!profilePic.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = "none";
+    }
+});
+
+// Logout function
+function logout() {
+    fetch('/logout', { method: 'POST' }) // Adjust the logout URL if needed
+        .then(response => {
+            if (response.ok) {
+                window.location.href = "/login"; // Redirect to login page
+            } else {
+                showModal("Logout failed. Try again.",null,false);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+}
+
+function showModal(message, callback, showCancel = false) {
+    const modal = document.getElementById("customModal");
+    const modalMessage = document.getElementById("modalMessage");
+    const modalConfirm = document.getElementById("modalConfirm");
+    const modalCancel = document.getElementById("modalCancel");
+
+    modalMessage.textContent = message;
+    modal.style.display = "flex";
+    
+    modalCancel.style.display = showCancel ? "inline-block" : "none";
+
+    modalConfirm.onclick = function () {
+        modal.style.display = "none";
+        if (callback) callback(true);
+    };
+
+    modalCancel.onclick = function () {
+        modal.style.display = "none";
+        if (callback) callback(false);
+    };
 }
